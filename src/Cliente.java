@@ -80,15 +80,15 @@ public class Cliente implements Registro {
     public byte[] toByteArray() throws IOException {
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try (DataOutputStream dos = new DataOutputStream(baos)) {
-            dos.writeInt(id);
-            dos.writeUTF(nome);
-            dos.writeUTF(cpf);
-            dos.writeUTF(telefone);
-            dos.writeUTF(email);
-            dos.flush();
-            return baos.toByteArray();
-        }
+        DataOutputStream dos = new DataOutputStream(baos);
+
+        dos.writeInt(id);
+        dos.writeUTF(nome);
+        dos.writeUTF(cpf);
+        dos.writeUTF(telefone);
+        dos.writeUTF(email);
+
+        return baos.toByteArray();
     }
 
     @Override
@@ -97,13 +97,14 @@ public class Cliente implements Registro {
         ByteArrayInputStream bais =
                 new ByteArrayInputStream(bytes);
 
-        try (DataInputStream dis = new DataInputStream(bais)) {
-            id = dis.readInt();
-            nome = dis.readUTF();
-            cpf = dis.readUTF();
-            telefone = dis.readUTF();
-            email = dis.readUTF();
-        }
+        DataInputStream dis =
+                new DataInputStream(bais);
+
+        id = dis.readInt();
+        nome = dis.readUTF();
+        cpf = dis.readUTF();
+        telefone = dis.readUTF();
+        email = dis.readUTF();
     }
 
     @Override
