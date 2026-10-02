@@ -19,6 +19,10 @@ public class ClienteDAO {
         return arquivoClientes.read(id);
     }
 
+    public List<Cliente> listarClientes() throws Exception {
+        return arquivoClientes.readAll();
+    }
+
     public boolean incluirCliente(Cliente cliente)
             throws Exception {
 
@@ -29,10 +33,6 @@ public class ClienteDAO {
             throws Exception {
 
         return arquivoClientes.update(cliente);
-    }
-
-    public List<Cliente> listarClientes() throws Exception {
-        return arquivoClientes.readAll();
     }
 
     public boolean excluirCliente(int id)

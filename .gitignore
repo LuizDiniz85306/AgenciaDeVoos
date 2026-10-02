@@ -1,0 +1,5 @@
+/bin/
+/tmp/
+/.settings/
+/dados/*
+!/dados/.gitkeep
