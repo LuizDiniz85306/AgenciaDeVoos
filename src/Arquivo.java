@@ -44,15 +44,11 @@ public class Arquivo<T extends Registro> {
 
             arquivo.seek(0);
 
-            // Último ID utilizado
             arquivo.writeInt(0);
 
-            // Primeiro registro excluído
             arquivo.writeLong(-1);
         }
 
-        // O Hash Extensível é persistido. A varredura integral só é feita na
-        // primeira criação do índice ou como recuperação de consistência.
         if (!indiceDireto.foiCarregadoDeArquivo() || !indiceDiretoEstaConsistente()) {
             reconstruirIndiceDireto();
         }
@@ -61,12 +57,10 @@ public class Arquivo<T extends Registro> {
 
     public int create(T obj) throws Exception {
 
-        // Obtém o último ID
         arquivo.seek(0);
 
         int novoId = arquivo.readInt() + 1;
 
-        // Atualiza o último ID
         arquivo.seek(0);
         arquivo.writeInt(novoId);
 
@@ -78,9 +72,6 @@ public class Arquivo<T extends Registro> {
 
         if (endereco == -1) {
 
-            // Não existe espaço reutilizável.
-            // Grava no final do arquivo.
-
             arquivo.seek(arquivo.length());
 
             arquivo.writeByte(' ');
@@ -89,13 +80,9 @@ public class Arquivo<T extends Registro> {
 
         } else {
 
-            // Reutiliza espaço de um registro excluído.
-
             arquivo.seek(endereco);
 
             arquivo.writeByte(' ');
-            // Mantém o tamanho físico do espaço reutilizado. Reduzir esse
-            // tamanho deslocaria a leitura do próximo registro.
             short tamanhoEspaco = arquivo.readShort();
             arquivo.seek(endereco + 1);
             arquivo.writeShort(tamanhoEspaco);
@@ -167,26 +154,13 @@ public class Arquivo<T extends Registro> {
                     short novoTamanho =
                             (short) novosDados.length;
 
-                    /*
-                     * Se o novo registro couber no espaço antigo,
-                     * sobrescreve os dados.
-                     */
                     long enderecoFinal = posicao;
                     if (novoTamanho <= tamanho) {
 
-                        // O tamanho físico do slot permanece o mesmo para
-                        // preservar o início do registro seguinte.
                         arquivo.seek(posicao + 3);
                         arquivo.write(novosDados);
 
                     } else {
-
-                        /*
-                         * Caso não caiba:
-                         * 1. Marca o antigo como excluído.
-                         * 2. Coloca o espaço na lista de excluídos.
-                         * 3. Cria o novo registro.
-                         */
 
                         arquivo.seek(posicao);
 
@@ -257,7 +231,6 @@ public class Arquivo<T extends Registro> {
 
                     arquivo.seek(posicao);
 
-                    // Exclusão lógica
                     arquivo.writeByte('*');
 
                     addDeleted(tamanho, posicao);
@@ -282,8 +255,6 @@ public class Arquivo<T extends Registro> {
                 arquivo.readLong();
 
         if (endereco == -1) {
-
-            // Primeiro espaço excluído.
 
             arquivo.seek(4);
 
@@ -508,11 +479,6 @@ public class Arquivo<T extends Registro> {
         }
     }
 
-    /**
-     * Confere se cada registro ativo possui o endereço físico correto no
-     * Hash e se não há chaves extras. Assim, um índice inválido é recuperado
-     * automaticamente sem ignorar a persistência quando ela está íntegra.
-     */
     private boolean indiceDiretoEstaConsistente() throws Exception {
         long posicaoOriginal = arquivo.getFilePointer();
         int ativos = 0;

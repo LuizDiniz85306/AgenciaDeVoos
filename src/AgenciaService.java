@@ -22,8 +22,6 @@ public class AgenciaService {
             arquivoVoos = new Arquivo<>("voos", Voo.class.getConstructor());
             migrarRelacoesLegadas();
             indiceVoosPorCliente = new ArvoreBMais("./dados/voos/voos.id_cliente.bplus.db");
-            // A B+ é persistida. Ela só é reconstruída ao ser criada ou se
-            // uma conferência completa detectar divergência com os dados.
             if (!indiceVoosPorCliente.foiCarregadaDeArquivo()
                     || !indiceBMaisEstaConsistente()) {
                 reconstruirIndicePorCliente();
@@ -41,7 +39,6 @@ public class AgenciaService {
         }
     }
 
-    /** Busca direta pela PK, atendida pelo Hash Extensível do Arquivo. */
     public synchronized Voo buscarVoo(int id) {
         try {
             return arquivoVoos.read(id);
@@ -112,7 +109,6 @@ public class AgenciaService {
         return voo != null && excluirVoo(voo.getId());
     }
 
-    /** Consulta 1:N: a B+ localiza todos os IDs de voos da FK informada. */
     public synchronized List<Voo> listarVoosDoCliente(int idCliente) {
         List<Voo> resultado = new ArrayList<>();
         for (Integer idVoo : indiceVoosPorCliente.buscar(idCliente)) {
@@ -160,10 +156,6 @@ public class AgenciaService {
         return mapaVoosPorCliente().equals(indiceVoosPorCliente.listarEntradas());
     }
 
-    /**
-     * Garante a integridade referencial também para chamadas que não passam
-     * pela interface Swing. O valor -1 representa voo sem cliente associado.
-     */
     private void validarClienteDaFk(int idCliente) throws Exception {
         if (idCliente == -1) {
             return;
@@ -182,7 +174,6 @@ public class AgenciaService {
         }
     }
 
-    /** Recria a B+ a partir do arquivo de dados após qualquer falha no CRUD. */
     private void recuperarIndicePorCliente(Exception causa) {
         try {
             reconstruirIndicePorCliente();
@@ -191,12 +182,6 @@ public class AgenciaService {
         }
     }
 
-    /**
-     * Migra somente uma vez a associação antiga VooCliente para a FK direta
-     * exigida nesta fase. Como o modelo antigo era N:N, o primeiro vínculo
-     * ativo de cada voo é preservado; os demais continuam intactos no arquivo
-     * legado, que não é mais usado pela aplicação.
-     */
     private void migrarRelacoesLegadas() throws Exception {
         File arquivoLegado = new File("./dados/voos_clientes/voos_clientes.db");
         File marcador = new File("./dados/voos/migracao_1n_v1.done");
@@ -218,7 +203,7 @@ public class AgenciaService {
                     legado.readFully(dados);
                     if (lapide == ' ') {
                         try (DataInputStream entrada = new DataInputStream(new ByteArrayInputStream(dados))) {
-                            entrada.readInt(); // id da relação antiga
+                            entrada.readInt();
                             int idCliente = entrada.readInt();
                             String codigoVoo = normalizarCodigo(entrada.readUTF());
                             if (idCliente > 0) clientePorCodigo.putIfAbsent(codigoVoo, idCliente);

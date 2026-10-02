@@ -12,13 +12,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Índice Hash Extensível persistido em arquivos binários. Cada chave aponta
- * para o endereço físico do registro no arquivo de dados.
- */
 public class HashExtensivel {
 
-    private static final int MAGIC = 0x48455831; // HEX1
+    private static final int MAGIC = 0x48455831;
     private static final int CAPACIDADE_BUCKET = 4;
 
     private static class Bucket {
@@ -48,7 +44,6 @@ public class HashExtensivel {
         carregadoDeArquivo = carregado;
     }
 
-    /** Indica se o índice atual foi recuperado de arquivos binários existentes. */
     public boolean foiCarregadoDeArquivo() {
         return carregadoDeArquivo;
     }
@@ -79,7 +74,6 @@ public class HashExtensivel {
         buckets.add(new Bucket(1));
     }
 
-    /** Quantidade de chaves atualmente mantidas no índice. */
     public synchronized int quantidadePares() {
         int quantidade = 0;
         for (Bucket bucket : buckets) {

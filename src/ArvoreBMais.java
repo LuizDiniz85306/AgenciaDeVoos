@@ -17,13 +17,9 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-/**
- * Árvore B+ persistida. As folhas guardam a FK e a lista de IDs dos registros
- * associados; os nós internos somente direcionam a busca até a folha correta.
- */
 public class ArvoreBMais {
 
-    private static final int MAGIC = 0x42504C31; // BPL1
+    private static final int MAGIC = 0x42504C31;
     private static final int MAX_CHAVES = 3;
 
     private static class No {
@@ -58,7 +54,6 @@ public class ArvoreBMais {
         carregadaDeArquivo = carregada;
     }
 
-    /** Indica se a árvore atual foi recuperada do seu arquivo binário. */
     public boolean foiCarregadaDeArquivo() {
         return carregadaDeArquivo;
     }
@@ -102,7 +97,6 @@ public class ArvoreBMais {
         persistir();
     }
 
-    /** Retorna uma cópia ordenada das entradas para auditoria de consistência. */
     public synchronized Map<Integer, List<Integer>> listarEntradas() {
         Map<Integer, List<Integer>> resultado = new TreeMap<>();
         for (Map.Entry<Integer, TreeSet<Integer>> entrada : extrairDados().entrySet()) {

@@ -6,7 +6,7 @@ import java.io.IOException;
 
 public class Voo implements Registro {
 
-    private static final int MARCADOR_FK = 0x564F4F32; // VOO2
+    private static final int MARCADOR_FK = 0x564F4F32;
     private int id;
     private String codigo;
     private String origem;
@@ -15,7 +15,6 @@ public class Voo implements Registro {
     private String horario;
     private String valor;
     private String status;
-    // FK do relacionamento Cliente (1) -> Voo (N).
     private int idCliente;
 
     public Voo() {
@@ -152,8 +151,6 @@ public class Voo implements Registro {
         horario = input.readUTF();
         valor = input.readUTF();
         status = input.readUTF();
-        // Compatibilidade com voos gravados antes da inclusão da FK e com
-        // slots físicos maiores que o conteúdo lógico reutilizado.
         idCliente = -1;
         if (input.available() >= Integer.BYTES * 2 && input.readInt() == MARCADOR_FK) {
             idCliente = input.readInt();
