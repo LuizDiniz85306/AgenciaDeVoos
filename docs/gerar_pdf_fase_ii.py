@@ -144,10 +144,7 @@ class TresBlocos(Flowable):
 def estilos():
     base = getSampleStyleSheet()
     return {
-        "inst": ParagraphStyle("inst", parent=base["Title"], fontName="Helvetica-Bold", fontSize=24, leading=28, alignment=TA_CENTER, textColor=AZUL),
-        "capa_sub": ParagraphStyle("capa_sub", parent=base["BodyText"], fontName="Helvetica", fontSize=11, leading=14, alignment=TA_CENTER, textColor=TEXTO),
-        "capa_titulo": ParagraphStyle("capa_titulo", parent=base["Title"], fontName="Helvetica-Bold", fontSize=27, leading=32, alignment=TA_CENTER, textColor=AZUL),
-        "capa_fase": ParagraphStyle("capa_fase", parent=base["BodyText"], fontName="Helvetica", fontSize=15, leading=19, alignment=TA_CENTER, textColor=TEXTO),
+        "capa_titulo": ParagraphStyle("capa_titulo", parent=base["Title"], fontName="Times-Bold", fontSize=30, leading=36, alignment=TA_CENTER, textColor=AZUL),
         "capa_label": ParagraphStyle("capa_label", parent=base["BodyText"], fontName="Helvetica-Bold", fontSize=8.2, leading=10, alignment=TA_CENTER, textColor=AZUL_MEDIO, spaceBefore=8),
         "capa_valor": ParagraphStyle("capa_valor", parent=base["BodyText"], fontName="Helvetica-Bold", fontSize=10.4, leading=14, alignment=TA_CENTER, textColor=AZUL),
         "titulo": ParagraphStyle("titulo", parent=base["Heading1"], fontName="Helvetica-Bold", fontSize=20, leading=24, textColor=AZUL, spaceAfter=8),
@@ -218,12 +215,8 @@ def gerar():
 
     # Capa
     s += [
-        Spacer(1, 0.82 * cm), p("PUC MINAS", e["inst"]),
-        p("Pontifícia Universidade Católica de Minas Gerais", e["capa_sub"]),
-        Spacer(1, 0.20 * cm), Linha(), Spacer(1, 1.0 * cm),
-        p("AGÊNCIA DE VOOS", e["capa_titulo"]), p("Trabalho Prático - Fase II", e["capa_fase"]),
-        Spacer(1, 0.22 * cm), p("Índices persistentes, relacionamento 1:N e processamento externo", e["capa_sub"]),
-        Spacer(1, 0.45 * cm),
+        Spacer(1, 3.0 * cm), p("AGÊNCIA DE VOOS", e["capa_titulo"]),
+        Spacer(1, 1.0 * cm),
         Image(str(BRASAO_PUC), width=4.4 * cm, height=4.4 * cm * 618 / 712,
               hAlign="CENTER", mask="auto"),
         Spacer(1, 0.30 * cm),
