@@ -1,5 +1,6 @@
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
@@ -11,6 +12,10 @@ public class TelaClientes extends JPanel {
     private static final Color COR_PAINEL = Color.BLACK;
     private static final Color COR_TEXTO = new Color(241, 245, 249);
     private static final Color COR_BORDA = new Color(71, 85, 105);
+    private static final Color COR_TABELA = new Color(15, 23, 42);
+    private static final Color COR_LINHA_ALTERNADA = new Color(30, 41, 59);
+    private static final Color COR_CABECALHO = new Color(30, 64, 175);
+    private static final Color COR_SELECAO = new Color(29, 78, 216);
 
     private final Runnable voltarAction;
     private final AgenciaService agenciaService;
@@ -190,16 +195,50 @@ public class TelaClientes extends JPanel {
         };
         tabelaClientes = new JTable(modeloClientes);
         tabelaClientes.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        tabelaClientes.setRowHeight(24);
+        tabelaClientes.setRowHeight(28);
         tabelaClientes.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        tabelaClientes.setBackground(Color.BLACK);
+        tabelaClientes.setBackground(COR_TABELA);
         tabelaClientes.setForeground(COR_TEXTO);
         tabelaClientes.setGridColor(COR_BORDA);
-        tabelaClientes.setSelectionBackground(new Color(30, 64, 175));
+        tabelaClientes.setSelectionBackground(COR_SELECAO);
         tabelaClientes.setSelectionForeground(Color.WHITE);
-        tabelaClientes.getTableHeader().setBackground(new Color(30, 41, 59));
-        tabelaClientes.getTableHeader().setForeground(COR_TEXTO);
+        tabelaClientes.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable tabela, Object valor,
+                    boolean selecionado, boolean foco, int linha, int coluna) {
+                super.getTableCellRendererComponent(tabela, valor, selecionado, foco, linha, coluna);
+                setOpaque(true);
+                setBackground(selecionado ? COR_SELECAO
+                        : linha % 2 == 0 ? COR_TABELA : COR_LINHA_ALTERNADA);
+                setForeground(selecionado ? Color.WHITE : COR_TEXTO);
+                setBorder(foco ? BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(new Color(147, 197, 253)),
+                        BorderFactory.createEmptyBorder(3, 7, 3, 7))
+                        : BorderFactory.createEmptyBorder(4, 8, 4, 8));
+                return this;
+            }
+        });
+        DefaultTableCellRenderer cabecalho = new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable tabela, Object valor,
+                    boolean selecionado, boolean foco, int linha, int coluna) {
+                super.getTableCellRendererComponent(tabela, valor, selecionado, foco, linha, coluna);
+                setOpaque(true);
+                setBackground(COR_CABECALHO);
+                setForeground(Color.WHITE);
+                setFont(tabela.getTableHeader().getFont());
+                setHorizontalAlignment(SwingConstants.LEFT);
+                setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createMatteBorder(0, 0, 1, 1, COR_BORDA),
+                        BorderFactory.createEmptyBorder(6, 8, 6, 8)));
+                return this;
+            }
+        };
+        tabelaClientes.getTableHeader().setDefaultRenderer(cabecalho);
+        tabelaClientes.getTableHeader().setBackground(COR_CABECALHO);
+        tabelaClientes.getTableHeader().setForeground(Color.WHITE);
         tabelaClientes.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
+        tabelaClientes.getTableHeader().setPreferredSize(new Dimension(0, 32));
         tabelaClientes.getColumnModel().getColumn(0).setPreferredWidth(45);
         tabelaClientes.getColumnModel().getColumn(1).setPreferredWidth(180);
         tabelaClientes.getColumnModel().getColumn(2).setPreferredWidth(105);
@@ -216,7 +255,14 @@ public class TelaClientes extends JPanel {
     private JScrollPane criarPainelTabelaClientes() {
         JScrollPane scroll = new JScrollPane(tabelaClientes);
         scroll.setPreferredSize(new Dimension(0, 165));
-        scroll.getViewport().setBackground(Color.BLACK);
+        scroll.setOpaque(true);
+        scroll.setBackground(COR_PAINEL);
+        scroll.getViewport().setBackground(COR_TABELA);
+        scroll.setColumnHeaderView(tabelaClientes.getTableHeader());
+        scroll.getColumnHeader().setBackground(COR_CABECALHO);
+        JPanel cantoTabela = new JPanel();
+        cantoTabela.setBackground(COR_CABECALHO);
+        scroll.setCorner(JScrollPane.UPPER_RIGHT_CORNER, cantoTabela);
         scroll.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder(COR_BORDA, 1),
                 " Clientes Cadastrados - selecione uma linha para consultar ",
