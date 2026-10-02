@@ -1,0 +1,3 @@
+# Preserva os bytes dos documentos e imagens em qualquer checkout.
+*.pdf binary
+*.png binary

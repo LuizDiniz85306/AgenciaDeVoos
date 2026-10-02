@@ -8,12 +8,13 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import cm
 from reportlab.platypus import (
-    Flowable, PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+    Flowable, Image, PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 )
 
 
 ROOT = Path(__file__).resolve().parent.parent
 OUTPUT = ROOT / "output" / "pdf" / "Fase II - Decisoes de Projeto.pdf"
+BRASAO_PUC = ROOT / "docs" / "assets" / "brasao-puc-minas.png"
 
 AZUL = colors.HexColor("#183F6A")
 AZUL_MEDIO = colors.HexColor("#006E8A")
@@ -35,34 +36,6 @@ class Linha(Flowable):
         self.canv.setStrokeColor(self.cor)
         self.canv.setLineWidth(0.7)
         self.canv.line(0, self.height / 2, self.width, self.height / 2)
-
-
-class CapaIlustracao(Flowable):
-    def __init__(self):
-        super().__init__()
-        self.width, self.height = 10.8 * cm, 3.1 * cm
-
-    def draw(self):
-        c = self.canv
-        x = self.width / 2
-        c.setStrokeColor(AZUL_MEDIO)
-        c.setDash(3, 3)
-        c.setLineWidth(1.2)
-        c.arc(x - 4.4 * cm, 0.20 * cm, x + 4.4 * cm, 2.85 * cm, 18, 144)
-        c.setDash()
-        c.setFillColor(AZUL)
-        c.saveState()
-        c.translate(x, 1.62 * cm)
-        c.rotate(-18)
-        c.roundRect(-0.16 * cm, -1.0 * cm, 0.32 * cm, 2.0 * cm, 0.14 * cm, fill=1, stroke=0)
-        c.setLineWidth(3.6)
-        c.line(-1.4 * cm, -0.05 * cm, 1.4 * cm, -0.05 * cm)
-        c.setLineWidth(2.1)
-        c.line(-0.62 * cm, -0.72 * cm, 0.62 * cm, -0.72 * cm)
-        c.restoreState()
-        c.setFillColor(AZUL_MEDIO)
-        c.circle(x - 4.2 * cm, 0.43 * cm, 0.08 * cm, fill=1, stroke=0)
-        c.circle(x + 4.05 * cm, 2.07 * cm, 0.08 * cm, fill=1, stroke=0)
 
 
 class ModeloDados(Flowable):
@@ -250,7 +223,10 @@ def gerar():
         Spacer(1, 0.20 * cm), Linha(), Spacer(1, 1.0 * cm),
         p("AGÊNCIA DE VOOS", e["capa_titulo"]), p("Trabalho Prático - Fase II", e["capa_fase"]),
         Spacer(1, 0.22 * cm), p("Índices persistentes, relacionamento 1:N e processamento externo", e["capa_sub"]),
-        Spacer(1, 0.34 * cm), CapaIlustracao(),
+        Spacer(1, 0.45 * cm),
+        Image(str(BRASAO_PUC), width=4.4 * cm, height=4.4 * cm * 618 / 712,
+              hAlign="CENTER", mask="auto"),
+        Spacer(1, 0.30 * cm),
         p("DISCIPLINA", e["capa_label"]), p("AED III", e["capa_valor"]),
         p("ETAPA", e["capa_label"]), p("Fase II - Estruturas de indexação e ordenação externa", e["capa_valor"]),
         p("INTEGRANTES", e["capa_label"]), p("Luiz Henrique de Paula Diniz", e["capa_valor"]), p("Eder Arthur", e["capa_valor"]),
