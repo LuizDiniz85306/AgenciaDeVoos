@@ -1,4 +1,4 @@
-"""Gera a documentação acadêmica de entrega da Fase II."""
+"""Gera a documentação acadêmica de entrega da Fase II em oito páginas."""
 
 from pathlib import Path
 
@@ -248,7 +248,6 @@ def gerar():
             ["4. Árvore B+", "Estrutura de consulta por FK e resposta para ocorrências repetidas."],
             ["5. Ordenação externa", "Runs, intercalação balanceada e arquivo final ordenado."],
             ["6. Integridade", "Sincronização entre dados e índices e justificativas das decisões."],
-            ["7. Verificação", "Roteiro de demonstração e testes executados antes da entrega."],
         ], [5.1 * cm, 11.1 * cm], e),
         Spacer(1, 0.14 * cm),
         p("<b>Observação de escopo.</b> A associação legada VooCliente era N:N. Nesta fase, ela foi consolidada em Voo.idCliente para atender ao relacionamento 1:N solicitado. Uma migração única preserva a primeira associação ativa de cada voo sem apagar o arquivo antigo.", e["nota"]),
@@ -345,7 +344,7 @@ def gerar():
         PageBreak(),
     ]
 
-    # integridade e verificação
+    # Integridade e decisões finais
     s += [
         p("6. Sincronização, recuperação e decisões", e["titulo"]), Linha(), Spacer(1, 0.28 * cm),
         p("A manutenção dos índices acompanha os dados em todas as operações. Por esse motivo, as estruturas são atualizadas no fluxo de inclusão, alteração e exclusão. Há verificações na abertura e uma recuperação da B+ a partir do arquivo de voos quando alguma etapa do CRUD falha.", e["corpo"]),
@@ -360,30 +359,6 @@ def gerar():
         p("Decisões 6 e 7", e["subtitulo"]),
         p("A maior mudança arquitetural foi substituir o vínculo N:N legado por idCliente em Voo. Arquivo recebeu a responsabilidade de manter o Hash por PK, ArvoreBMais passou a persistir o índice de FK e AgenciaService concentra a coordenação entre os dois. Essa divisão permite demonstrar cada estrutura e reduz o acoplamento da interface com a persistência.", e["corpo"]),
         p("<b>Persistência de arquivos.</b> Os dados e índices ficam no diretório dados. O README do repositório descreve a compilação com JDK 21, os caminhos de cada arquivo persistido e o roteiro de demonstração. Dados de execução não são versionados; o repositório contém o código, a documentação e as instruções necessárias para recriar a base local.", e["nota"]),
-        PageBreak(),
-        p("7. Verificação e roteiro de demonstração", e["titulo"]), Linha(), Spacer(1, 0.28 * cm),
-        p("Antes da entrega, foi executada uma verificação isolada do comportamento essencial da Fase II. Os cenários abaixo exercitam a persistência e a atualização dos índices, além de confirmar que a aplicação continua consistente depois de reaberta.", e["corpo"]),
-        tabela([
-            ["Cenário verificado", "Resultado esperado", "Resultado"],
-            ["CRUD binário", "Criar, alterar e excluir registros preserva a consistência do arquivo.", "Aprovado"],
-            ["Hash após reiniciar", "Busca direta por PK continua funcionando sem regravação indevida.", "Aprovado"],
-            ["B+ com FK repetida", "Todos os voos de um mesmo cliente são recuperados.", "Aprovado"],
-            ["Alteração de FK", "O voo deixa a chave antiga e passa a aparecer na nova chave.", "Aprovado"],
-            ["FK inexistente", "O serviço rejeita a associação inválida mesmo fora da interface.", "Aprovado"],
-            ["Ordenação externa", "Arquivo final binário é criado em ordem de data/hora.", "Aprovado"],
-        ], [5.0 * cm, 8.4 * cm, 2.8 * cm], e),
-        p("Roteiro para apresentação", e["subtitulo"]),
-        tabela([
-            ["Passo", "Demonstração"],
-            ["1", "Cadastrar ao menos dois clientes na tela Gerenciamento de Clientes."],
-            ["2", "Cadastrar três ou mais voos, vinculando dois deles ao mesmo cliente no campo Cliente (FK)."],
-            ["3", "Buscar um voo apenas pelo ID para demonstrar o acesso direto pelo Hash Extensível."],
-            ["4", "Selecionar ou informar o cliente e usar Buscar voos para demonstrar a consulta 1:N pela B+."],
-            ["5", "Executar Ordenar externamente e mostrar o arquivo binário gerado no diretório de voos."],
-            ["6", "Fechar e abrir a aplicação; repetir a busca por ID e a consulta por cliente."],
-        ], [1.5 * cm, 14.7 * cm], e),
-        Spacer(1, 0.24 * cm),
-        p("<b>Conclusão.</b> A Fase II entrega CRUD binário com relacionamento 1:N, Hash Extensível persistente, Árvore B+ persistente para consulta por FK e ordenação externa por intercalação. A documentação, o código-fonte e o roteiro de execução estão reunidos no repositório do projeto.", e["nota"]),
     ]
 
     documento = SimpleDocTemplate(
