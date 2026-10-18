@@ -38,21 +38,25 @@ public class Arquivo<T extends Registro> {
         this.arquivo = new RandomAccessFile(caminho, "rw");
         this.arquivoBits = new File(caminho + ".bits.txt");
         this.construtor = construtor;
-        this.indiceDireto = new HashExtensivel(caminho + ".hash");
-
-        if (arquivo.length() < TAM_CABECALHO) {
-
-            arquivo.seek(0);
-
-            arquivo.writeInt(0);
-
-            arquivo.writeLong(-1);
+        try {
+            this.indiceDireto = new HashExtensivel(caminho + ".hash");
+            if (arquivo.length() < TAM_CABECALHO) {
+                arquivo.seek(0);
+                arquivo.writeInt(0);
+                arquivo.writeLong(-1);
+            }
+            if (!indiceDireto.foiCarregadoDeArquivo() || !indiceDiretoEstaConsistente()) {
+                reconstruirIndiceDireto();
+            }
+            atualizarArquivoBits();
+        } catch (Exception e) {
+            try {
+                arquivo.close();
+            } catch (IOException falhaFechamento) {
+                e.addSuppressed(falhaFechamento);
+            }
+            throw e;
         }
-
-        if (!indiceDireto.foiCarregadoDeArquivo() || !indiceDiretoEstaConsistente()) {
-            reconstruirIndiceDireto();
-        }
-        atualizarArquivoBits();
     }
 
     public int create(T obj) throws Exception {
@@ -364,6 +368,10 @@ public class Arquivo<T extends Registro> {
 
     public void close() throws Exception {
         arquivo.close();
+    }
+
+    public synchronized void sincronizar() throws IOException {
+        arquivo.getFD().sync();
     }
 
     public synchronized File ordenarExterno(Comparator<T> comparador, int tamanhoBloco,

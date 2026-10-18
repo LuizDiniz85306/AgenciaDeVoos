@@ -1,58 +1,35 @@
-# Agência de Voos - AED III, Fase II
+# Agência de Voos — AED III, Fase III
 
-Aplicação Java Swing para cadastro de clientes e voos, com dados e índices
-persistidos em arquivos binários. O Hash Extensível e a Árvore B+ são
-carregados em memória durante a execução.
+Aplicação Java Swing para gerenciar clientes, voos e check-in de passageiros,
+com dados e índices em arquivos binários. As funcionalidades de uso do sistema
+estão disponíveis na interface gráfica; o usuário não precisa de console.
 
-## Requisitos implementados
+## Funcionalidades
 
-- CRUD de `Cliente` e `Voo` em arquivos `.db`, com exclusão lógica e
-  reutilização segura de espaço.
-- Relacionamento **1:N Cliente -> Voo**: `Voo.idCliente` é a chave estrangeira.
-  Um cliente pode ter vários voos; um voo possui no máximo um cliente. A
-  interface bloqueia a exclusão de um cliente com voos associados. Chamadas
-  diretas a `ClienteDAO.excluirCliente` não verificam esses vínculos.
-- Hash Extensível para a PK de cada arquivo de dados, reutilizado após
-  reinicializar a aplicação. Ele é reconstruído se estiver ausente, se o
-  carregamento não for aprovado ou se a conferência com os dados detectar
-  divergência. A recuperação pressupõe um arquivo de dados legível e não corrige
-  toda forma de corrupção. Arquivos persistidos:
-  - `dados/clientes/clientes.db.hash.dir.db`
-  - `dados/clientes/clientes.db.hash.buckets.db`
-  - `dados/voos/voos.db.hash.dir.db`
-  - `dados/voos/voos.db.hash.buckets.db`
-- Árvore B+ secundária persistida em
-  `dados/voos/voos.id_cliente.bplus.db`, que mapeia `idCliente` para todos os
-  IDs de voos associados. A estrutura é reutilizada depois de reiniciar quando
-  consistente. Cada inserção ou remoção efetiva extrai as entradas, reconstrói
-  toda a árvore em memória e regrava seu arquivo. Uma alteração de voo associado
-  pode provocar duas reconstruções. A conferência na abertura compara os pares
-  extraídos das folhas com os voos ativos, sem validar integralmente a estrutura.
-- Ordenação externa por intercalação de duas vias de voos por data e horário. Ela
-  gera blocos ordenados de até três registros, intercala os arquivos
-  temporários em memória secundária e produz
-  `dados/voos/voos_ordenados_por_data_hora.db`.
-- Quando existe o arquivo legado `voos_clientes` e ainda não há marcador de
-  migração, a primeira associação ativa com ID positivo de cada código de voo
-  preenche `Voo.idCliente` nos voos sem FK positiva. O modelo antigo era N:N;
-  o arquivo original não é apagado. A migração não revalida a existência do
-  cliente associado.
-
-Nas inclusões e alterações realizadas por `AgenciaService.salvarVoo`, a FK deve
-ser `-1` (voo sem cliente) ou um ID positivo de cliente existente, inclusive em
-chamadas sem a interface. Essa validação não é aplicada pela migração legada.
-
-Em caso de exceção nas operações de salvar ou excluir voos, o serviço tenta
-reconstruir a B+ a partir dos registros ativos. A recuperação também pode
-falhar e não desfaz alterações já gravadas. Não há transação nem garantia de
-gravação atômica entre dados, Hash e B+. O Hash é conferido novamente na abertura.
+- CRUD de clientes e voos, com PKs estáveis, exclusão lógica e Hash Extensível
+  persistente para localizar os registros por ID.
+- Relacionamento N:N: um cliente pode participar de vários voos e um voo pode
+  ter vários clientes. A associação tem chave composta **(idCliente, idVoo)**,
+  sem ID artificial, e não pode ser cadastrada em duplicidade.
+- Inclusão e remoção de vínculos e consultas completas nos dois sentidos,
+  disponíveis em **Check-in**. Na interface, o vínculo cliente–voo é apresentado
+  como check-in; o modelo técnico permanece N:N.
+- Duas Árvores B+ persistidas: `idCliente → IDs dos voos` e
+  `idVoo → IDs dos clientes`. As consultas usam esses índices e recuperam
+  as entidades pelo Hash, sem varrer o intermediário a cada consulta.
+- Integridade referencial no serviço: somente clientes e voos existentes
+  podem ser associados. Excluir uma entidade com vínculos é bloqueado;
+  primeiro remova suas associações. Alterar nome, código ou demais dados
+  não muda os IDs nem perde os vínculos.
+- Ordenação externa dos voos por data e horário, por intercalação de duas vias,
+  com blocos de até três registros e arquivos temporários em disco.
+- Migração automática dos vínculos válidos da Fase II, com backup dos arquivos
+  originais e marcador para não reimportar associações já removidas.
 
 ## Como executar
 
-O projeto não usa bibliotecas externas. Use JDK 21 e execute os comandos da
-raiz do projeto, onde estão as pastas `src` e `dados`.
-
-Em um terminal PowerShell com `javac` e `java` disponíveis no PATH:
+Requer JDK 21, sem bibliotecas externas. Abra a raiz do projeto, onde estão
+`src` e `dados`, e compile antes de executar. Em PowerShell:
 
 ```powershell
 $fontesAgencia = @(Get-ChildItem -LiteralPath .\src -Filter *.java -File | ForEach-Object { $_.FullName })
@@ -61,8 +38,7 @@ if ($LASTEXITCODE -ne 0) { throw "A compilação falhou." }
 java -cp bin Principal
 ```
 
-Se o JDK não estiver no PATH, substitua `javac` e `java` pelos caminhos dos
-executáveis da sua instalação. Por exemplo, com o JDK instalado neste caminho:
+Se o JDK não estiver no PATH, use os caminhos da instalação. Por exemplo:
 
 ```powershell
 $fontesAgencia = @(Get-ChildItem -LiteralPath .\src -Filter *.java -File | ForEach-Object { $_.FullName })
@@ -71,49 +47,99 @@ if ($LASTEXITCODE -ne 0) { throw "A compilação falhou." }
 & 'C:\Program Files\Java\jdk-21.0.12\bin\java.exe' -cp bin Principal
 ```
 
-A pasta `bin` não é versionada: recompile após clonar o repositório ou limpar
-os arquivos compilados. O erro `ClassNotFoundException: Principal` pode ocorrer
-se `bin/Principal.class` não tiver sido gerado ou se o classpath estiver errado.
-No VS Code, abra a raiz do projeto, aguarde a compilação Java e execute
-`Principal` com F5. Mantenha apenas uma instância da aplicação aberta por vez.
+No VS Code, abra a pasta do projeto, aguarde a análise Java, selecione a
+configuração **Agência de Voos** em Executar e Depurar e pressione F5.
+A aplicação usa Swing e não precisa receber comandos pelo console.
 
-## Roteiro de demonstração
+Se o aviso **Build failed** persistir apesar da compilação
+correta no terminal, execute **Java: Clean Java Language Server Workspace** na
+paleta de comandos, confirme a limpeza/reinício e aguarde a análise terminar.
+Não use **Always Continue** para esconder erros de compilação.
 
-1. Cadastre dois clientes em **Gerenciar Clientes**.
-2. Em **Gerenciar Voos**, cadastre três ou mais voos, selecionando o mesmo
-   cliente no campo **Cliente (FK)** para pelo menos dois deles.
-3. Após salvar um voo, seu ID aparece no campo **ID (PK)**. Limpe o código,
-   informe somente o ID e use **Buscar**: esta operação usa o Hash Extensível.
-4. Em **Gerenciar Clientes**, informe o ID de um cliente e clique em
-   **Buscar voos**. A lista é recuperada pela Árvore B+ usando a FK.
-5. Em **Gerenciar Voos**, clique em **Ordenar externamente**. O resultado
-   permanece no arquivo binário ordenado sem alterar o arquivo de dados
-   principal.
-6. Feche e abra novamente a aplicação. Os arquivos de dados e de índices são
-   recarregados do diretório `dados`; os arquivos dos índices não são
-   regravados quando a conferência de consistência é aprovada.
+`bin` não é versionada: recompile após clonar ou limpar os `.class`.
+`ClassNotFoundException: Principal` indica que a classe não foi gerada ou que
+o classpath não aponta para `bin`. Mantenha uma única instância da agência
+aberta por base de dados; o intermediário N:N possui bloqueio entre processos.
 
-## Entrega
+## Uso pela interface
 
-O formulário de decisões de projeto da Fase II, incluindo o diagrama do
-relacionamento e a explicação das estruturas persistidas, está em
-[`output/pdf/Fase II - Decisoes de Projeto.pdf`](output/pdf/Fase%20II%20-%20Decisoes%20de%20Projeto.pdf).
+1. Em **Gerenciar Clientes**, cadastre ou consulte os clientes. A seleção de
+   uma linha preenche o formulário e mostra os voos associados.
+2. Em **Gerenciar Voos**, salve os voos e consulte-os pelo ID ou código.
+   O cadastro do voo não substitui nem remove associações existentes. Use
+   **Ordenar voos** para ver a lista por data e horário no painel à direita;
+   o arquivo ordenado também é gerado em disco.
+3. Abra **Check-in**. Selecione um passageiro e um voo e clique em
+   **Fazer check-in**. O resultado aparece na própria tela.
+4. Faça o check-in de outro passageiro no mesmo voo e do primeiro passageiro
+   em outro voo. Use **Voos do passageiro** e **Passageiros do voo** para conferir
+   todos os registros.
+5. Tente repetir o mesmo par: a interface informa que ele já existe.
+6. Selecione o passageiro e o voo e use **Cancelar check-in**. As duas consultas
+   são atualizadas; os outros check-ins e os cadastros continuam preservados.
+7. Para excluir um cliente ou voo, cancele antes todos os seus check-ins.
+   Feche e reabra o programa para conferir a persistência.
 
-## Decisões de projeto
+A interface usa uma paleta consistente em azul-marinho, azul e verde-petróleo,
+com texto de alto contraste nos botões, formulários e tabelas. Os nomes técnicos
+do relacionamento ficam na documentação e no código, não na navegação.
 
-O Hash Extensível armazena no diretório binário a profundidade global e os
-identificadores dos buckets; cada bucket guarda sua profundidade local e pares
-`PK -> endereço físico do registro`.
-Ele é atualizado nas inclusões, atualizações e exclusões feitas por `Arquivo`.
+## Arquivos e implementação
 
-As folhas da Árvore B+ armazenam as chaves `idCliente` e as listas ordenadas de
-IDs de voos. Os nós internos guardam chaves separadoras que direcionam a busca
-até a folha. A serialização guarda os nós, as referências aos filhos, os valores
-e o encadeamento das folhas. A reconstrução completa após cada manutenção
-simplifica a implementação, mas aumenta seu custo conforme a base cresce.
+| Arquivo | Finalidade |
+| --- | --- |
+| `dados/clientes/clientes.db` | Registros dos clientes |
+| `dados/voos/voos.db` | Registros dos voos |
+| `*.db.hash.dir.db` e `*.db.hash.buckets.db` | Hash Extensível das PKs |
+| `dados/associacoes/clientes_voos.db` | Intermediário binário N:N |
+| `dados/associacoes/clientes_voos.cliente.bplus.db` | B+ de cliente para voos |
+| `dados/associacoes/clientes_voos.voo.bplus.db` | B+ de voo para clientes |
+| `dados/associacoes/migracao_fase_iii_v1.done` | Marca a migração concluída |
+| `dados/associacoes/backup_fase_ii/` | Originais anteriores à migração |
+| `dados/voos/voos_ordenados_por_data_hora.db` | Resultado da ordenação externa |
 
-A ordenação não carrega todos os voos em memória: gera runs ordenados e faz
-intercalações de dois em dois até produzir o arquivo final. Cada intercalação
-mantém um registro corrente de cada entrada. O fluxo normal solicita a exclusão
-dos temporários, mas não garante sua limpeza em caso de exceção ou falha na
-exclusão de arquivos.
+O intermediário tem cabeçalho com identificação e versão. Cada registro ocupa
+13 bytes: estado/lápide (1), ID do cliente (4), ID do voo (4) e CRC32 dos IDs
+(4). Um mapa ordenado em memória relaciona a chave composta ao endereço do
+registro para controlar duplicidade e localizar a exclusão. Ele é reconstruído
+na abertura e não substitui as duas B+ utilizadas nas consultas.
+
+As B+ são estruturas reais com nós internos, separadores e folhas encadeadas,
+carregadas em memória e serializadas em binário. A implementação existente
+reconstrói a árvore completa a cada manutenção. Na abertura da Fase III, ambas
+são regeneradas a partir do intermediário, com arquivo temporário e substituição,
+para não confiar em índices antigos ou corrompidos. Isso aumenta o custo de
+inicialização/manutenção, mas as consultas regulares percorrem os índices.
+
+`AgenciaService` valida as referências, coordena as operações e compartilha um
+único `ClienteDAO` com as telas. A exclusão direta por `ClienteDAO` também
+confere o intermediário e bloqueia clientes associados. `ClienteVooDAO` é a
+camada interna de armazenamento; a validação da existência das entidades
+pertence ao serviço e não deve ser contornada chamando o armazenamento direto.
+
+## Migração, segurança e limites
+
+- Na primeira abertura, os arquivos binários de clientes, voos e o intermediário
+  legado, se existir, são copiados para `backup_fase_ii` antes da conversão.
+  Vínculos válidos da FK antiga e do arquivo legado são importados sem duplicar.
+  Referências antigas inválidas são informadas pela interface e preservadas
+  nos originais do backup, não importadas para o N:N.
+- Após importar, a FK antiga é neutralizada. O campo permanece no formato de
+  `Voo` para ler a Fase II, mas não representa mais o relacionamento ativo.
+  Novos vínculos usam o intermediário. Não apague o marcador de migração.
+- O intermediário N:N e suas duas B+ são sincronizados em disco. Se uma gravação falhar,
+  o DAO tenta recuperar os índices; se não conseguir, recusa novas operações
+  até a reabertura. Uma operação que informou falha pode já ter gravado o vínculo:
+  consulte a tela antes de repeti-la. Não há transação multiarquivo nem rollback
+  geral de dados, Hash, B+ e migração.
+- Corrupção dos dados ativos gera erro explícito; não existe recuperação
+  automática de toda forma de corrupção. Faça cópias da pasta `dados` com o
+  programa fechado. As bases locais e os backups não são versionados.
+- A ordenação externa gera e intercala runs em disco sem carregar todos os
+  voos na memória. O fluxo normal remove temporários; falhas de I/O podem
+  deixar arquivos temporários para conferência.
+
+## Documentação
+
+O [PDF da Fase II](output/pdf/Fase%20II%20-%20Decisoes%20de%20Projeto.pdf)
+é mantido como documento histórico daquela etapa; ele não descreve o novo N:N.

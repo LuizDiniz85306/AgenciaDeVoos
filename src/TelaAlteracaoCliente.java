@@ -5,10 +5,6 @@ import java.util.regex.Pattern;
 
 public class TelaAlteracaoCliente extends JDialog {
 
-    private static final Color COR_PAINEL = Color.BLACK;
-    private static final Color COR_TEXTO = new Color(241, 245, 249);
-    private static final Color COR_BORDA = new Color(71, 85, 105);
-
     private static final Pattern EMAIL_PATTERN = Pattern.compile(
             "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[a-zA-Z]{2,}$"
     );
@@ -35,25 +31,25 @@ public class TelaAlteracaoCliente extends JDialog {
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
         JPanel painel = new JPanel(new BorderLayout(16, 16));
-        painel.setBackground(Color.BLACK);
+        painel.setBackground(Tema.FUNDO);
         painel.setBorder(new EmptyBorder(18, 18, 18, 18));
         setContentPane(painel);
 
         JLabel lblTitulo = new JLabel("Alteração de Cliente");
         lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 24));
-        lblTitulo.setForeground(COR_TEXTO);
+        lblTitulo.setForeground(Tema.TEXTO);
         lblTitulo.setHorizontalAlignment(SwingConstants.CENTER);
         painel.add(lblTitulo, BorderLayout.NORTH);
 
         JPanel panelForm = new JPanel(new GridBagLayout());
-        panelForm.setBackground(COR_PAINEL);
+        panelForm.setBackground(Tema.PAINEL);
         panelForm.setBorder(BorderFactory.createTitledBorder(
-            BorderFactory.createLineBorder(COR_BORDA, 1),
+            BorderFactory.createLineBorder(Tema.BORDA, 1),
                 " Dados do Cliente ",
                 0,
                 0,
                 new Font("Segoe UI", Font.BOLD, 14),
-                COR_TEXTO
+                Tema.TEXTO
         ));
 
         GridBagConstraints gbc = new GridBagConstraints();
@@ -106,8 +102,8 @@ public class TelaAlteracaoCliente extends JDialog {
         JPanel botoes = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 8));
         botoes.setOpaque(false);
 
-        JButton btnSalvar = criarBotao("Salvar Alteração", new Color(30, 64, 175));
-        JButton btnCancelar = criarBotao("Cancelar", new Color(148, 163, 184));
+        JButton btnSalvar = criarBotao("Salvar Alteração", Tema.PRIMARIA);
+        JButton btnCancelar = criarBotao("Cancelar", Tema.VOLTAR);
 
         btnSalvar.addActionListener(e -> salvarAlteracao());
         btnCancelar.addActionListener(e -> dispose());
@@ -231,7 +227,7 @@ public class TelaAlteracaoCliente extends JDialog {
         botao.setOpaque(true);
         botao.setFont(new Font("Segoe UI", Font.BOLD, 12));
         botao.setBackground(cor);
-        botao.setForeground(texto.equals("Cancelar") ? new Color(15, 23, 42) : Color.WHITE);
+        botao.setForeground(texto.equals("Cancelar") ? Tema.TEXTO_CAMPO : Tema.TEXTO);
         botao.setContentAreaFilled(true);
         botao.setFocusPainted(false);
         botao.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -241,14 +237,16 @@ public class TelaAlteracaoCliente extends JDialog {
 
     private JLabel criarRotulo(String texto) {
         JLabel rotulo = new JLabel(texto);
-        rotulo.setForeground(COR_TEXTO);
+        rotulo.setForeground(Tema.TEXTO);
         return rotulo;
     }
 
     private void configurarCampo(JTextField campo) {
-        campo.setBackground(Color.WHITE);
-        campo.setForeground(new Color(15, 23, 42));
-        campo.setCaretColor(new Color(15, 23, 42));
+        campo.setBackground(Tema.CAMPO);
+        campo.setForeground(Tema.TEXTO_CAMPO);
+        campo.setCaretColor(Tema.TEXTO_CAMPO);
+        campo.setSelectionColor(Tema.SELECAO);
+        campo.setSelectedTextColor(Tema.TEXTO);
         campo.setFont(new Font("Segoe UI", Font.PLAIN, 13));
     }
 }

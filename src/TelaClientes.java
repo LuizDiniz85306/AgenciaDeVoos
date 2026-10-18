@@ -1,16 +1,12 @@
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
 import java.util.regex.Pattern;
 
 public class TelaClientes extends JPanel {
-
-    private static final Color COR_FUNDO = Color.BLACK;
-    private static final Color COR_PAINEL = Color.BLACK;
-    private static final Color COR_TEXTO = new Color(241, 245, 249);
-    private static final Color COR_BORDA = new Color(71, 85, 105);
 
     private final Runnable voltarAction;
     private final AgenciaService agenciaService;
@@ -45,31 +41,27 @@ public class TelaClientes extends JPanel {
         this.voltarAction = voltarAction;
         this.agenciaService = agenciaService;
 
-        try {
-            clienteDAO = new ClienteDAO();
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Erro ao carregar banco de dados: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
-        }
+        clienteDAO = agenciaService.getClienteDAO();
 
-        setBackground(COR_FUNDO);
+        setBackground(Tema.FUNDO);
         setBorder(new EmptyBorder(18, 18, 18, 18));
         setLayout(new BorderLayout(15, 15));
 
         JLabel lblTitulo = new JLabel("Gerenciamento de Clientes");
         lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 24));
-        lblTitulo.setForeground(COR_TEXTO);
+        lblTitulo.setForeground(Tema.TEXTO);
         lblTitulo.setHorizontalAlignment(SwingConstants.CENTER);
         add(lblTitulo, BorderLayout.NORTH);
 
         JPanel panelForm = new JPanel(new GridBagLayout());
-        panelForm.setBackground(COR_PAINEL);
+        panelForm.setBackground(Tema.PAINEL);
         panelForm.setBorder(BorderFactory.createTitledBorder(
-            BorderFactory.createLineBorder(COR_BORDA, 1),
+            BorderFactory.createLineBorder(Tema.BORDA, 1),
                 " Cadastro do Cliente ",
                 0,
                 0,
                 new Font("Segoe UI", Font.BOLD, 14),
-                COR_TEXTO
+                Tema.TEXTO
         ));
 
         GridBagConstraints gbc = new GridBagConstraints();
@@ -125,16 +117,18 @@ public class TelaClientes extends JPanel {
         txtVoosCliente.setLineWrap(true);
         txtVoosCliente.setWrapStyleWord(true);
         txtVoosCliente.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        txtVoosCliente.setBackground(Color.BLACK);
-        txtVoosCliente.setForeground(COR_TEXTO);
-        txtVoosCliente.setText("Informe o ID do cliente para consultar os voos.");
+        txtVoosCliente.setBackground(Tema.PAINEL);
+        txtVoosCliente.setForeground(Tema.TEXTO);
+        txtVoosCliente.setText("Selecione um cliente para consultar seus check-ins.");
         txtVoosCliente.setBorder(BorderFactory.createTitledBorder(
-            BorderFactory.createLineBorder(COR_BORDA, 1),
-            " Voos do Cliente ", 0, 0,
-            new Font("Segoe UI", Font.BOLD, 14), COR_TEXTO));
+            BorderFactory.createLineBorder(Tema.BORDA, 1),
+            " Voos com check-in ", 0, 0,
+            new Font("Segoe UI", Font.BOLD, 14), Tema.TEXTO));
         JScrollPane scrollVoos = new JScrollPane(txtVoosCliente);
         scrollVoos.setPreferredSize(new Dimension(350, 300));
-        scrollVoos.getViewport().setBackground(Color.BLACK);
+        scrollVoos.setBackground(Tema.PAINEL);
+        scrollVoos.getViewport().setBackground(Tema.PAINEL);
+        scrollVoos.setBorder(BorderFactory.createLineBorder(Tema.BORDA));
         painelConteudo.add(scrollVoos, BorderLayout.EAST);
         criarTabelaClientes();
 
@@ -144,16 +138,16 @@ public class TelaClientes extends JPanel {
         painelCentral.add(criarPainelTabelaClientes(), BorderLayout.SOUTH);
         add(painelCentral, BorderLayout.CENTER);
 
-        JPanel panelBotoes = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        JPanel panelBotoes = new JPanel(new GridLayout(2, 4, 8, 6));
         panelBotoes.setOpaque(false);
 
-        btnBuscar = criarBotao("Buscar", new Color(59, 130, 246));
-        btnCadastrar = criarBotao("Cadastrar", new Color(34, 197, 94));
-        btnAlterar = criarBotao("Alterar", new Color(245, 158, 11));
-        btnExcluir = criarBotao("Excluir", new Color(239, 68, 68));
-        btnLimpar = criarBotao("Limpar", new Color(107, 114, 128));
-        btnVoltar = criarBotao("Voltar", new Color(148, 163, 184));
-        JButton btnBuscarVoos = criarBotao("Buscar voos", new Color(22, 163, 74));
+        btnBuscar = criarBotao("Buscar", Tema.PRIMARIA);
+        btnCadastrar = criarBotao("Cadastrar", Tema.SUCESSO);
+        btnAlterar = criarBotao("Alterar", Tema.AVISO);
+        btnExcluir = criarBotao("Excluir", Tema.PERIGO);
+        btnLimpar = criarBotao("Limpar", Tema.NEUTRA);
+        btnVoltar = criarBotao("Voltar", Tema.VOLTAR);
+        JButton btnBuscarVoos = criarBotao("Ver check-ins", Tema.SUCESSO);
 
         panelBotoes.add(btnBuscar);
         panelBotoes.add(btnCadastrar);
@@ -190,16 +184,50 @@ public class TelaClientes extends JPanel {
         };
         tabelaClientes = new JTable(modeloClientes);
         tabelaClientes.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        tabelaClientes.setRowHeight(24);
+        tabelaClientes.setRowHeight(28);
         tabelaClientes.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        tabelaClientes.setBackground(Color.BLACK);
-        tabelaClientes.setForeground(COR_TEXTO);
-        tabelaClientes.setGridColor(COR_BORDA);
-        tabelaClientes.setSelectionBackground(new Color(30, 64, 175));
-        tabelaClientes.setSelectionForeground(Color.WHITE);
-        tabelaClientes.getTableHeader().setBackground(new Color(30, 41, 59));
-        tabelaClientes.getTableHeader().setForeground(COR_TEXTO);
+        tabelaClientes.setBackground(Tema.FUNDO);
+        tabelaClientes.setForeground(Tema.TEXTO);
+        tabelaClientes.setGridColor(Tema.BORDA);
+        tabelaClientes.setSelectionBackground(Tema.SELECAO);
+        tabelaClientes.setSelectionForeground(Tema.TEXTO);
+        tabelaClientes.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable tabela, Object valor,
+                    boolean selecionado, boolean foco, int linha, int coluna) {
+                super.getTableCellRendererComponent(tabela, valor, selecionado, foco, linha, coluna);
+                setOpaque(true);
+                setBackground(selecionado ? Tema.SELECAO
+                        : linha % 2 == 0 ? Tema.FUNDO : Tema.LINHA_ALTERNADA);
+                setForeground(Tema.TEXTO);
+                setBorder(foco ? BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(Tema.FOCO),
+                        BorderFactory.createEmptyBorder(3, 7, 3, 7))
+                        : BorderFactory.createEmptyBorder(4, 8, 4, 8));
+                return this;
+            }
+        });
+        DefaultTableCellRenderer cabecalho = new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable tabela, Object valor,
+                    boolean selecionado, boolean foco, int linha, int coluna) {
+                super.getTableCellRendererComponent(tabela, valor, selecionado, foco, linha, coluna);
+                setOpaque(true);
+                setBackground(Tema.CABECALHO);
+                setForeground(Tema.TEXTO);
+                setFont(tabela.getTableHeader().getFont());
+                setHorizontalAlignment(SwingConstants.LEFT);
+                setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createMatteBorder(0, 0, 1, 1, Tema.BORDA),
+                        BorderFactory.createEmptyBorder(6, 8, 6, 8)));
+                return this;
+            }
+        };
+        tabelaClientes.getTableHeader().setDefaultRenderer(cabecalho);
+        tabelaClientes.getTableHeader().setBackground(Tema.CABECALHO);
+        tabelaClientes.getTableHeader().setForeground(Tema.TEXTO);
         tabelaClientes.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
+        tabelaClientes.getTableHeader().setPreferredSize(new Dimension(0, 32));
         tabelaClientes.getColumnModel().getColumn(0).setPreferredWidth(45);
         tabelaClientes.getColumnModel().getColumn(1).setPreferredWidth(180);
         tabelaClientes.getColumnModel().getColumn(2).setPreferredWidth(105);
@@ -216,11 +244,18 @@ public class TelaClientes extends JPanel {
     private JScrollPane criarPainelTabelaClientes() {
         JScrollPane scroll = new JScrollPane(tabelaClientes);
         scroll.setPreferredSize(new Dimension(0, 165));
-        scroll.getViewport().setBackground(Color.BLACK);
+        scroll.setOpaque(true);
+        scroll.setBackground(Tema.PAINEL);
+        scroll.getViewport().setBackground(Tema.FUNDO);
+        scroll.setColumnHeaderView(tabelaClientes.getTableHeader());
+        scroll.getColumnHeader().setBackground(Tema.CABECALHO);
+        JPanel cantoTabela = new JPanel();
+        cantoTabela.setBackground(Tema.CABECALHO);
+        scroll.setCorner(JScrollPane.UPPER_RIGHT_CORNER, cantoTabela);
         scroll.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(COR_BORDA, 1),
+                BorderFactory.createLineBorder(Tema.BORDA, 1),
                 " Clientes Cadastrados - selecione uma linha para consultar ",
-                0, 0, new Font("Segoe UI", Font.BOLD, 14), COR_TEXTO));
+                0, 0, new Font("Segoe UI", Font.BOLD, 14), Tema.TEXTO));
         return scroll;
     }
 
@@ -230,7 +265,7 @@ public class TelaClientes extends JPanel {
         btn.setOpaque(true);
         btn.setFont(new Font("Segoe UI", Font.BOLD, 12));
         btn.setBackground(corFundo);
-        btn.setForeground(texto.equals("Voltar") ? new Color(15, 23, 42) : Color.WHITE);
+        btn.setForeground(texto.equals("Voltar") ? Tema.TEXTO_CAMPO : Tema.TEXTO);
         btn.setContentAreaFilled(true);
         btn.setFocusPainted(false);
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -240,14 +275,16 @@ public class TelaClientes extends JPanel {
 
     private JLabel criarRotulo(String texto) {
         JLabel rotulo = new JLabel(texto);
-        rotulo.setForeground(COR_TEXTO);
+        rotulo.setForeground(Tema.TEXTO);
         return rotulo;
     }
 
     private void configurarCampo(JTextField campo) {
-        campo.setBackground(Color.WHITE);
-        campo.setForeground(new Color(15, 23, 42));
-        campo.setCaretColor(new Color(15, 23, 42));
+        campo.setBackground(Tema.CAMPO);
+        campo.setForeground(Tema.TEXTO_CAMPO);
+        campo.setCaretColor(Tema.TEXTO_CAMPO);
+        campo.setSelectionColor(Tema.SELECAO);
+        campo.setSelectedTextColor(Tema.TEXTO);
         campo.setFont(new Font("Segoe UI", Font.PLAIN, 13));
     }
 
@@ -475,7 +512,7 @@ public class TelaClientes extends JPanel {
             }
 
             if (agenciaService.possuiVoosDoCliente(id)) {
-                mostrarAlerta("O cliente possui voos associados e não pode ser excluído. Reatribua ou exclua os voos antes.");
+                mostrarAlerta("Este cliente possui check-ins. Cancele-os antes de excluir o cadastro.");
                 return;
             }
 
@@ -488,7 +525,7 @@ public class TelaClientes extends JPanel {
             );
 
             if (confirm == JOptionPane.YES_OPTION) {
-                if (clienteDAO.excluirCliente(id)) {
+                if (agenciaService.excluirCliente(id)) {
                     JOptionPane.showMessageDialog(this, "Cliente removido com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
                     limparCampos();
                     carregarClientesCadastrados();
@@ -509,14 +546,14 @@ public class TelaClientes extends JPanel {
         txtCpf.setText("");
         txtTelefone.setText("");
         txtEmail.setText("");
-        txtVoosCliente.setText("Informe o ID do cliente para consultar os voos.");
+        txtVoosCliente.setText("Selecione um cliente para consultar seus check-ins.");
         txtNome.requestFocus();
     }
 
     private void buscarVoosCliente() {
         String idTexto = txtId.getText().trim();
         if (!idTexto.matches("\\d{1,9}") || Integer.parseInt(idTexto) <= 0) {
-            mostrarAlerta("Informe o ID numérico do cliente para consultar os voos.");
+            mostrarAlerta("Informe o ID do cliente para consultar seus check-ins.");
             txtId.requestFocus();
             return;
         }
@@ -540,10 +577,15 @@ public class TelaClientes extends JPanel {
         }
     }
 
+    public void atualizarTela() {
+        carregarClientesCadastrados();
+        atualizarVoosClienteAtual();
+    }
+
     private void atualizarVoosCliente(int idCliente) {
         List<Voo> voos = agenciaService.listarVoosDoCliente(idCliente);
         if (voos.isEmpty()) {
-            txtVoosCliente.setText("Nenhum voo associado a este cliente.");
+            txtVoosCliente.setText("Nenhum check-in encontrado para este cliente.");
             return;
         }
         StringBuilder resumo = new StringBuilder();
