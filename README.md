@@ -143,3 +143,8 @@ pertence ao serviço e não deve ser contornada chamando o armazenamento direto.
 
 O [PDF da Fase II](output/pdf/Fase%20II%20-%20Decisoes%20de%20Projeto.pdf)
 é mantido como documento histórico daquela etapa; ele não descreve o novo N:N.
+
+O [vídeo demonstrativo da Fase III](video/TP3_AED.mp4) está neste repositório.
+Para assistir, abra o link, use a opção de download do GitHub e reproduza o
+arquivo MP4 no seu computador. A página do arquivo pode não exibir uma prévia
+do vídeo.
